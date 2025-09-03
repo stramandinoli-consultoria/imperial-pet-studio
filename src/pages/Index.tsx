@@ -25,7 +25,7 @@ const Index = ({ initialSection }: Props) => {
       <Helmet>
         <title>Imperial Pet Studio | Banho e Tosa & Pet Shop</title>
         <meta name="description" content="Banho e tosa com elegância. Brinquedos, roupas e ração para cães e gatos. Agende online na Imperial Pet Studio." />
-        <link rel="canonical" href="/" />
+        <link rel="canonical" href="https://imperialpets.com.br/" />
       </Helmet>
 
       {/* Hero */}

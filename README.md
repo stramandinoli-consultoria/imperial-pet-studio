@@ -3,6 +3,7 @@
 ## Project info
 
 **Description**: Site para banho e tosa, produtos para pets
+**Website**: https://imperialpets.com.br
 
 ## How can I edit this code?
 
@@ -58,8 +59,11 @@ This project is built with:
 
 You can deploy this project using various hosting platforms such as Vercel, Netlify, or GitHub Pages.
 
-## Can I connect a custom domain to my project?
+## Domain Information
 
-Yes, you can!
+This project is configured to use the custom domain: **imperialpets.com.br**
 
-Most hosting providers allow you to connect a custom domain to your project.
+When deploying, make sure to:
+1. Configure DNS settings to point to your hosting provider
+2. Set up SSL certificate for secure HTTPS access
+3. Update any environment variables with the correct domain

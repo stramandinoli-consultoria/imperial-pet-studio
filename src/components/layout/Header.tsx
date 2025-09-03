@@ -15,7 +15,7 @@ export const Header = () => {
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src="/lovable-uploads/a4e1bfcb-a28a-4f19-b3b6-1f4dc6820291.png" alt="Logo Imperial Pet Studio - cachorro coroado" className="h-10 w-auto" loading="eager" />
+          <img src="/images/logo-imperial.png" alt="Logo Imperial Pet Studio - cachorro coroado" className="h-10 w-auto" loading="eager" />
           <span className="text-lg font-semibold">Imperial Pet Studio</span>
         </Link>
 

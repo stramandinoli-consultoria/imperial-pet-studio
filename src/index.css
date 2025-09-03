@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Brand palette (HSL) */
+    --brand-primary: 15 84% 57%; /* Persimmon #ED6435 */
+    --brand-accent: 183 54% 53%; /* Medium Turquoise #45C1C7 */
+    --brand-soft: 25 100% 92%;  /* Bridesmaid #FFE6D4 */
+    --brand-ink: 34 10% 21%;    /* Eclipse #3C3731 */
+    --brand-white: 0 0% 100%;   /* White */
+
+    /* Base tokens */
+    --background: var(--brand-white);
+    --foreground: var(--brand-ink);
+
+    --card: var(--brand-white);
+    --card-foreground: var(--brand-ink);
+
+    --popover: var(--brand-white);
+    --popover-foreground: var(--brand-ink);
+
+    --primary: var(--brand-primary);
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: var(--brand-soft);
+    --secondary-foreground: var(--brand-ink);
+
+    --muted: 25 35% 95%;
+    --muted-foreground: 34 10% 40%;
+
+    --accent: var(--brand-accent);
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 3 83% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 25 30% 90%;
+    --input: 25 30% 90%;
+    --ring: var(--brand-accent);
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 25 45% 97%;
+    --sidebar-foreground: var(--brand-ink);
+    --sidebar-primary: var(--brand-primary);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 25 45% 94%;
+    --sidebar-accent-foreground: var(--brand-ink);
+    --sidebar-border: 25 30% 90%;
+    --sidebar-ring: var(--brand-accent);
+
+    /* Elevation & motion */
+    --shadow-elev: 0 10px 30px -12px hsl(var(--brand-primary) / 0.25);
+    --shadow-soft: 0 6px 20px -8px hsl(var(--brand-accent) / 0.18);
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-primary) / 0.95), hsl(var(--brand-accent) / 0.95));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--brand-white)), hsl(25 50% 98%));
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 0 0% 100%;
+
+    --card: 222.2 84% 6%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 222.2 84% 6%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 15 84% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 75.1%;
+
+    --accent: 183 54% 46%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 183 54% 53%;
+
+    --sidebar-background: 222.2 84% 6.5%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 15 84% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222.2 32.6% 14.5%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222.2 32.6% 14.5%;
+    --sidebar-ring: 183 54% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image: var(--gradient-subtle);
+    font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  /* Typography */
+  h1, h2 { font-family: 'Playfair Display', Georgia, serif; }
+  h3, h4, h5, h6 { @apply text-foreground; }
+  a { @apply text-primary; }
+}

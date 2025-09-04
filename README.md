@@ -71,6 +71,7 @@ To deploy this project on Railway with the custom domain:
    - Create a new project in Railway
    - Connect your GitHub repository
    - Railway will automatically detect and use the configuration from `railway.json`
+   - The project is configured to use `--omit=dev` to avoid development dependencies in production
 
 2. **Configure DNS settings**:
    - Go to your domain registrar (e.g., GoDaddy, Namecheap)

@@ -16,4 +16,11 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  preview: {
+    allowedHosts: [
+      "imperial-pet-studio-production.up.railway.app",
+      "imperialpets.com.br",
+      "www.imperialpets.com.br"
+    ]
+  },
 }));

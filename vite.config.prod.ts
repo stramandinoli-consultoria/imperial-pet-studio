@@ -17,6 +17,11 @@ export default defineConfig({
   preview: {
     host: "0.0.0.0",
     port: parseInt(process.env.PORT || "8080"),
+    allowedHosts: [
+      "imperial-pet-studio-production.up.railway.app",
+      "imperialpets.com.br",
+      "www.imperialpets.com.br"
+    ]
   },
   build: {
     outDir: "dist",

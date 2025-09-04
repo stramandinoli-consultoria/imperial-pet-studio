@@ -72,6 +72,7 @@ To deploy this project on Railway with the custom domain:
    - Connect your GitHub repository
    - Railway will automatically detect and use the configuration from `railway.json`
    - The project includes an `.npmrc` file that configures npm to exclude development dependencies in production
+   - The Vite configuration allows access from both the Railway domain and the custom domain
 
 2. **Configure DNS settings**:
    - Go to your domain registrar (e.g., GoDaddy, Namecheap)

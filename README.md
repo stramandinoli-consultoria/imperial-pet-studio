@@ -63,7 +63,31 @@ You can deploy this project using various hosting platforms such as Vercel, Netl
 
 This project is configured to use the custom domain: **imperialpets.com.br**
 
-When deploying, make sure to:
-1. Configure DNS settings to point to your hosting provider
-2. Set up SSL certificate for secure HTTPS access
-3. Update any environment variables with the correct domain
+### Railway Deployment Instructions
+
+To deploy this project on Railway with the custom domain:
+
+1. **Link your repository to Railway**:
+   - Create a new project in Railway
+   - Connect your GitHub repository
+   - Railway will automatically detect and use the configuration from `railway.json`
+
+2. **Configure DNS settings**:
+   - Go to your domain registrar (e.g., GoDaddy, Namecheap)
+   - Add the following DNS records:
+     ```
+     A     imperialpets.com.br     76.76.21.21
+     CNAME www.imperialpets.com.br railway.app
+     ```
+
+3. **Verify your domain on Railway**:
+   - In your Railway project, go to Settings > Domains
+   - Click "Add Domain" and enter `imperialpets.com.br`
+   - Railway will verify your DNS settings
+   - Add a second domain for `www.imperialpets.com.br` if needed
+
+4. **SSL Certificate**:
+   - Railway will automatically provision an SSL certificate via Let's Encrypt
+   - This enables secure HTTPS access to your site
+
+Your site will be accessible at https://imperialpets.com.br once the DNS propagation is complete (may take up to 24-48 hours).

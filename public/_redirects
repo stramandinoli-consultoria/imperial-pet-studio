@@ -1,0 +1,5 @@
+# Redirecionar www para domínio raiz
+https://www.imperialpets.com.br/* https://imperialpets.com.br/:splat 301!
+
+# Lidar com rotas SPA
+/* /index.html 200

@@ -1,1 +1,1 @@
-web: npm run start --omit=dev
+web: npm --omit=dev run start

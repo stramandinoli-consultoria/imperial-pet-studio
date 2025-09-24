@@ -118,6 +118,12 @@ export const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4 mr-2" />
+                    Meu Perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/agendamento">
                     <Calendar className="h-4 w-4 mr-2" />
                     Agendamentos

@@ -8,6 +8,7 @@ import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Agendamento from "@/pages/Agendamento";
+import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/agendamento" element={<Agendamento />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/servicos" element={<Index initialSection="servicos" />} />
                 <Route path="/produtos" element={<Index initialSection="produtos" />} />
                 <Route path="/contato" element={<Index initialSection="contato" />} />

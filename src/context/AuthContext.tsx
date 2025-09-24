@@ -11,6 +11,8 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, phone: string, password: string) => Promise<boolean>;
+  updateProfile: (name: string, email: string, phone: string) => Promise<boolean>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -94,13 +96,81 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return true;
   };
 
+  const updateProfile = async (name: string, email: string, phone: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      // Simular atualização - em produção, seria uma chamada para API
+      const users = JSON.parse(localStorage.getItem("imperial_pet_users") || "[]");
+      const userIndex = users.findIndex((u: any) => u.id === user?.id);
+      
+      if (userIndex === -1) {
+        setIsLoading(false);
+        return false;
+      }
+      
+      // Verificar se o novo email já existe (e não é o email atual do usuário)
+      const emailExists = users.find((u: any) => u.email === email && u.id !== user?.id);
+      if (emailExists) {
+        setIsLoading(false);
+        return false;
+      }
+      
+      // Atualizar dados do usuário
+      users[userIndex] = { ...users[userIndex], name, email, phone };
+      localStorage.setItem("imperial_pet_users", JSON.stringify(users));
+      
+      // Atualizar usuário logado
+      const updatedUser = { id: user!.id, name, email, phone };
+      setUser(updatedUser);
+      localStorage.setItem("imperial_pet_user", JSON.stringify(updatedUser));
+      
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      // Simular verificação de senha - em produção, seria uma chamada para API
+      const users = JSON.parse(localStorage.getItem("imperial_pet_users") || "[]");
+      const userIndex = users.findIndex((u: any) => u.id === user?.id);
+      
+      if (userIndex === -1) {
+        setIsLoading(false);
+        return false;
+      }
+      
+      // Verificar senha atual
+      if (users[userIndex].password !== currentPassword) {
+        setIsLoading(false);
+        return false;
+      }
+      
+      // Atualizar senha
+      users[userIndex].password = newPassword;
+      localStorage.setItem("imperial_pet_users", JSON.stringify(users));
+      
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      setIsLoading(false);
+      return false;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("imperial_pet_user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, updateProfile, changePassword, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

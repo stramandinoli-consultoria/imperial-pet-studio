@@ -1,85 +1,89 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { usePets } from "@/hooks/use-pets";
+import { useServicos, useHorariosDisponiveis } from "@/hooks/use-servicos";
+import { useAgendamentos, useCreateAgendamento, useCancelAgendamento } from "@/hooks/use-agendamentos";
 import { Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Calendar, Clock, User, Heart } from "lucide-react";
-
-interface Appointment {
-  id: string;
-  userId: string;
-  service: string;
-  petName: string;
-  petType: string;
-  petSize: string;
-  date: string;
-  time: string;
-  notes: string;
-  status: "agendado" | "confirmado" | "concluido" | "cancelado";
-  createdAt: string;
-}
+import { Calendar, Clock, User, Heart, Loader2, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const Agendamento = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    service: "",
-    petName: "",
-    petType: "",
-    petSize: "",
-    date: "",
-    time: "",
-    notes: ""
+    petId: "",
+    servicoId: "",
+    data: "",
+    horario: "",
+    observacoes: ""
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  // Hooks da API
+  const { data: pets, isLoading: loadingPets, error: errorPets } = usePets();
+  const { data: servicos, isLoading: loadingServicos, error: errorServicos } = useServicos();
+  const { data: agendamentos, isLoading: loadingAgendamentos, error: errorAgendamentos } = useAgendamentos();
+  const { data: horariosDisponiveis, isLoading: loadingHorarios } = useHorariosDisponiveis(
+    parseInt(formData.servicoId) || 0,
+    formData.data
+  );
+  const createAgendamento = useCreateAgendamento();
+  const cancelAgendamento = useCancelAgendamento();
+
+  // Debug logs
+  console.log('Agendamento Debug:', {
+    pets,
+    loadingPets,
+    errorPets,
+    servicos,
+    loadingServicos,
+    errorServicos,
+    agendamentos,
+    loadingAgendamentos,
+    errorAgendamentos,
+    user
+  });
 
   // Se não estiver logado, redireciona para login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Carregar agendamentos do usuário
-  useEffect(() => {
-    const savedAppointments = JSON.parse(localStorage.getItem("imperial_pet_appointments") || "[]");
-    const userAppointments = savedAppointments.filter((apt: Appointment) => apt.userId === user.id);
-    setAppointments(userAppointments);
-  }, [user.id]);
+  // Se houver erro crítico, mostrar erro
+  if (errorPets || errorServicos || errorAgendamentos) {
+    console.error('Erro crítico nos hooks:', { errorPets, errorServicos, errorAgendamentos });
+    // Não bloquear a renderização, apenas logar o erro
+  }
 
-  const services = [
-    { value: "banho-premium", label: "Banho Premium", price: 60 },
-    { value: "tosa-tesoura", label: "Tosa na Tesoura", price: 90 },
-    { value: "higiene-completa", label: "Higiene Completa", price: 45 },
-    { value: "banho-tosa", label: "Banho + Tosa", price: 120 },
-  ];
+  // Função auxiliar para extrair preço do serviço
+  const getPrecoServico = (servico: any): number => {
+    return servico.preco || servico.Preco || 0;
+  };
 
-  const timeSlots = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-    "11:00", "11:30", "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00", "17:30"
-  ];
-
-  const handleChange = (field: string, value: string) => {
+  const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: value,
+      // Limpar horário quando mudar data ou serviço
+      ...(name === 'data' || name === 'servicoId' ? { horario: "" } : {})
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { service, petName, petType, petSize, date, time } = formData;
+    const { petId, servicoId, data, horario, observacoes } = formData;
     
-    if (!service || !petName || !petType || !petSize || !date || !time) {
+    if (!petId || !servicoId || !data || !horario) {
       toast({
         title: "Erro",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -89,7 +93,7 @@ const Agendamento = () => {
     }
 
     // Verificar se a data não é no passado
-    const selectedDate = new Date(date);
+    const selectedDate = new Date(data);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -102,78 +106,92 @@ const Agendamento = () => {
       return;
     }
 
-    setIsSubmitting(true);
-    
-    const newAppointment: Appointment = {
-      id: Date.now().toString(),
-      userId: user.id,
-      service,
-      petName,
-      petType,
-      petSize,
-      date,
-      time,
-      notes: formData.notes,
-      status: "agendado",
-      createdAt: new Date().toISOString()
-    };
+    const dataHorario = `${data}T${horario}:00`;
 
-    // Salvar no localStorage (em produção seria uma API)
-    const allAppointments = JSON.parse(localStorage.getItem("imperial_pet_appointments") || "[]");
-    allAppointments.push(newAppointment);
-    localStorage.setItem("imperial_pet_appointments", JSON.stringify(allAppointments));
-    
-    setAppointments(prev => [newAppointment, ...prev]);
-    
-    // Limpar formulário
-    setFormData({
-      service: "",
-      petName: "",
-      petType: "",
-      petSize: "",
-      date: "",
-      time: "",
-      notes: ""
-    });
-    
-    toast({
-      title: "Sucesso!",
-      description: "Agendamento realizado com sucesso. Entraremos em contato para confirmação.",
-    });
-    
-    setIsSubmitting(false);
+    try {
+      await createAgendamento.mutateAsync({
+        petId: parseInt(petId),
+        servicoId: parseInt(servicoId),
+        dataHorario,
+        observacoes: observacoes || undefined,
+      });
+
+      // Limpar formulário
+      setFormData({
+        petId: "",
+        servicoId: "",
+        data: "",
+        horario: "",
+        observacoes: ""
+      });
+    } catch (error) {
+      // Erro já tratado pelo hook
+    }
   };
 
-  const getServiceLabel = (serviceValue: string) => {
-    return services.find(s => s.value === serviceValue)?.label || serviceValue;
+  const handleCancelAgendamento = async (id: number) => {
+    if (confirm("Tem certeza que deseja cancelar este agendamento?")) {
+      try {
+        await cancelAgendamento.mutateAsync(id);
+      } catch (error) {
+        // Erro já tratado pelo hook
+      }
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    const statusMap: Record<string, string> = {
+      "Aguardando": "Aguardando",
+      "Confirmado": "Confirmado",
+      "Em Andamento": "Em Andamento", 
+      "Concluído": "Concluído",
+      "Cancelado": "Cancelado"
+    };
+    return statusMap[status] || status;
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "agendado": return "text-yellow-600 bg-yellow-100";
-      case "confirmado": return "text-blue-600 bg-blue-100";
-      case "concluido": return "text-green-600 bg-green-100";
-      case "cancelado": return "text-red-600 bg-red-100";
-      default: return "text-gray-600 bg-gray-100";
+      case "Confirmado":
+        return "bg-green-100 text-green-800";
+      case "Em Andamento":
+        return "bg-blue-100 text-blue-800";
+      case "Concluído":
+        return "bg-gray-100 text-gray-800";
+      case "Cancelado":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
     }
   };
 
-  return (
-    <Layout>
-      <Helmet>
-        <title>Agendamento | Imperial Pet Studio</title>
-        <meta name="description" content="Agende serviços para seu pet na Imperial Pet Studio." />
-      </Helmet>
+  // Formatação de data mínima (hoje)
+  const today = new Date().toISOString().split('T')[0];
 
-      <div className="container py-12 md:py-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Área de Agendamento</h1>
-          <p className="text-muted-foreground mt-2">
-            Olá, {user.name}! Agende serviços para seu pet.
+  console.log('Renderizando componente Agendamento...');
+
+  return (
+    <ErrorBoundary>
+      <Layout>
+        <Helmet>
+          <title>Agendamento | Imperial Pet Studio</title>
+          <meta name="description" content="Agende serviços de banho e tosa para seu pet com facilidade." />
+        </Helmet>
+
+      <div className="container py-12 md:py-16 space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-4">Agendamento de Serviços</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Olá, {user?.nome || 'usuário'}! Agende serviços para seu pet de forma rápida e prática.
           </p>
+          
+          {/* Debug info - remover depois */}
+          <div className="text-xs text-gray-500 mt-2">
+            Debug: Pets={pets?.length}, Serviços={servicos?.length}, Agendamentos={agendamentos?.length}
+          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {/* Formulário de Agendamento */}
           <Card>
             <CardHeader>
@@ -184,100 +202,111 @@ const Agendamento = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Pet */}
                 <div className="space-y-2">
-                  <Label htmlFor="service">Serviço *</Label>
-                  <Select value={formData.service} onValueChange={(value) => handleChange("service", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o serviço" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((service) => (
-                        <SelectItem key={service.value} value={service.value}>
-                          {service.label} - R$ {service.price}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="petName">Nome do Pet *</Label>
-                    <Input
-                      id="petName"
-                      placeholder="Nome do seu pet"
-                      value={formData.petName}
-                      onChange={(e) => handleChange("petName", e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="petType">Tipo *</Label>
-                    <Select value={formData.petType} onValueChange={(value) => handleChange("petType", value)}>
+                  <Label>Pet *</Label>
+                  {loadingPets ? (
+                    <div className="flex items-center gap-2 p-3 border rounded">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Carregando pets...
+                    </div>
+                  ) : pets && pets.length > 0 ? (
+                    <Select value={formData.petId} onValueChange={(value) => handleInputChange("petId", value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Cão ou Gato" />
+                        <SelectValue placeholder="Selecione um pet" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cao">Cão</SelectItem>
-                        <SelectItem value="gato">Gato</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="petSize">Porte *</Label>
-                  <Select value={formData.petSize} onValueChange={(value) => handleChange("petSize", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o porte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pequeno">Pequeno (até 10kg)</SelectItem>
-                      <SelectItem value="medio">Médio (10-25kg)</SelectItem>
-                      <SelectItem value="grande">Grande (25-40kg)</SelectItem>
-                      <SelectItem value="gigante">Gigante (acima de 40kg)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Data *</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => handleChange("date", e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Horário *</Label>
-                    <Select value={formData.time} onValueChange={(value) => handleChange("time", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o horário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeSlots.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
+                        {pets.map((pet) => (
+                          <SelectItem key={pet.id} value={pet.id.toString()}>
+                            {pet.nome} ({pet.especie})
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
+                  ) : (
+                    <div className="p-3 border rounded text-muted-foreground">
+                      Você precisa cadastrar um pet primeiro.
+                    </div>
+                  )}
                 </div>
 
+                {/* Serviço */}
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Observações</Label>
+                  <Label>Serviço *</Label>
+                  {loadingServicos ? (
+                    <div className="flex items-center gap-2 p-3 border rounded">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Carregando serviços...
+                    </div>
+                  ) : (
+                    <Select value={formData.servicoId} onValueChange={(value) => handleInputChange("servicoId", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um serviço" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {servicos?.map((servico) => (
+                          <SelectItem key={servico.id} value={servico.id.toString()}>
+                            {servico.nome} - R$ {getPrecoServico(servico).toFixed(2)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* Data */}
+                <div className="space-y-2">
+                  <Label>Data *</Label>
+                  <input
+                    type="date"
+                    min={today}
+                    value={formData.data}
+                    onChange={(e) => handleInputChange("data", e.target.value)}
+                    className="w-full p-3 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                {/* Horário */}
+                <div className="space-y-2">
+                  <Label>Horário *</Label>
+                  {!formData.servicoId || !formData.data ? (
+                    <div className="p-3 border rounded text-muted-foreground">
+                      Selecione um serviço e data primeiro
+                    </div>
+                  ) : loadingHorarios ? (
+                    <div className="flex items-center gap-2 p-3 border rounded">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Carregando horários...
+                    </div>
+                  ) : horariosDisponiveis && horariosDisponiveis.length > 0 ? (
+                    <Select value={formData.horario} onValueChange={(value) => handleInputChange("horario", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {horariosDisponiveis.map((horario) => (
+                          <SelectItem key={horario} value={horario}>
+                            {horario}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="p-3 border rounded text-muted-foreground">
+                      Nenhum horário disponível para esta data
+                    </div>
+                  )}
+                </div>
+
+                {/* Observações */}
+                <div className="space-y-2">
+                  <Label>Observações</Label>
                   <Textarea
-                    id="notes"
-                    placeholder="Informações adicionais sobre seu pet (temperamento, cuidados especiais, etc.)"
-                    value={formData.notes}
-                    onChange={(e) => handleChange("notes", e.target.value)}
+                    placeholder="Informações adicionais sobre seu pet..."
+                    value={formData.observacoes}
+                    onChange={(e) => handleInputChange("observacoes", e.target.value)}
+                    rows={3}
                   />
                 </div>
 
@@ -285,9 +314,19 @@ const Agendamento = () => {
                   type="submit" 
                   className="w-full" 
                   variant="hero"
-                  disabled={isSubmitting}
+                  disabled={createAgendamento.isPending || !pets || pets.length === 0}
                 >
-                  {isSubmitting ? "Agendando..." : "Agendar Serviço"}
+                  {createAgendamento.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Agendando...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Agendar Serviço
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>
@@ -298,43 +337,77 @@ const Agendamento = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Seus Agendamentos
+                Meus Agendamentos
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {appointments.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Você ainda não tem agendamentos.
-                </p>
+              {loadingAgendamentos ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  Carregando agendamentos...
+                </div>
+              ) : !agendamentos || agendamentos.length === 0 ? (
+                <div className="text-center py-8">
+                  <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Nenhum agendamento encontrado.</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Seu primeiro agendamento aparecerá aqui.
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-4">
-                  {appointments.map((appointment) => (
-                    <div key={appointment.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
+                  {agendamentos.map((agendamento) => (
+                    <div key={agendamento.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-semibold">{getServiceLabel(appointment.service)}</h4>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Heart className="h-4 w-4" />
-                            {appointment.petName} ({appointment.petType === "cao" ? "Cão" : "Gato"})
+                          <h4 className="font-semibold">{agendamento.servico?.nome}</h4>
+                          <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                            <User className="h-4 w-4" />
+                            {agendamento.pet?.nome} ({agendamento.pet?.especie})
                           </div>
                         </div>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(appointment.status)}`}>
-                          {appointment.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getStatusColor(agendamento.status)}>
+                            {formatStatus(agendamento.status)}
+                          </Badge>
+                          {agendamento.status === "Aguardando" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelAgendamento(agendamento.id)}
+                              disabled={cancelAgendamento.isPending}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          {new Date(appointment.date).toLocaleDateString('pt-BR')} às {appointment.time}
+                          {new Date(agendamento.dataHorario).toLocaleDateString('pt-BR')}
                         </div>
-                        <div>Porte: {appointment.petSize}</div>
-                        {appointment.notes && (
-                          <div className="mt-2">
-                            <strong>Observações:</strong> {appointment.notes}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {new Date(agendamento.dataHorario).toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
                       </div>
+
+                      {agendamento.observacoes && (
+                        <div className="text-sm">
+                          <strong>Observações:</strong> {agendamento.observacoes}
+                        </div>
+                      )}
+
+                      {agendamento.servico && (
+                        <div className="text-sm font-semibold text-primary">
+                          R$ {getPrecoServico(agendamento.servico).toFixed(2)}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -344,6 +417,7 @@ const Agendamento = () => {
         </div>
       </div>
     </Layout>
+    </ErrorBoundary>
   );
 };
 

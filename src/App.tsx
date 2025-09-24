@@ -8,6 +8,7 @@ import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Agendamento from "@/pages/Agendamento";
+import MeusPets from "@/pages/MeusPets";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 
@@ -32,6 +33,7 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/agendamento" element={<Agendamento />} />
+                <Route path="/meus-pets" element={<MeusPets />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/servicos" element={<Index initialSection="servicos" />} />
                 <Route path="/produtos" element={<Index initialSection="produtos" />} />

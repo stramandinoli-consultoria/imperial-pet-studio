@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ShoppingCart, User, LogOut, Calendar } from "lucide-react";
+import { ShoppingCart, User, LogOut, Calendar, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -113,7 +113,7 @@ export const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                  <span className="hidden sm:inline">{user.nome.split(' ')[0]}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -121,6 +121,12 @@ export const Header = () => {
                   <Link to="/profile">
                     <User className="h-4 w-4 mr-2" />
                     Meu Perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/meus-pets">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Meus Pets
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

@@ -16,9 +16,10 @@ const Profile = () => {
   const { toast } = useToast();
   
   const [profileData, setProfileData] = useState({
-    name: "",
+    nome: "",
     email: "",
-    phone: ""
+    telefone: "",
+    endereco: ""
   });
   
   const [passwordData, setPasswordData] = useState({
@@ -39,9 +40,10 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setProfileData({
-        name: user.name,
+        nome: user.nome,
         email: user.email,
-        phone: user.phone
+        telefone: user.telefone,
+        endereco: user.endereco || ""
       });
     }
   }, [user]);
@@ -63,12 +65,12 @@ const Profile = () => {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { name, email, phone } = profileData;
+    const { nome, email, telefone, endereco } = profileData;
     
-    if (!name || !email || !phone) {
+    if (!nome || !email || !telefone) {
       toast({
         title: "Erro",
-        description: "Por favor, preencha todos os campos.",
+        description: "Por favor, preencha todos os campos obrigatórios.",
         variant: "destructive"
       });
       return;
@@ -76,7 +78,7 @@ const Profile = () => {
 
     setIsUpdatingProfile(true);
     
-    const success = await updateProfile(name, email, phone);
+    const success = await updateProfile(nome, email, telefone, endereco);
     
     if (success) {
       toast({
@@ -193,13 +195,13 @@ const Profile = () => {
                 <CardContent>
                   <form onSubmit={handleProfileSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Nome completo</Label>
+                      <Label htmlFor="nome">Nome completo</Label>
                       <Input
-                        id="name"
-                        name="name"
+                        id="nome"
+                        name="nome"
                         type="text"
                         placeholder="Seu nome completo"
-                        value={profileData.name}
+                        value={profileData.nome}
                         onChange={handleProfileChange}
                         required
                       />
@@ -219,15 +221,27 @@ const Profile = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telefone</Label>
+                      <Label htmlFor="telefone">Telefone</Label>
                       <Input
-                        id="phone"
-                        name="phone"
+                        id="telefone"
+                        name="telefone"
                         type="tel"
                         placeholder="(11) 99999-9999"
-                        value={profileData.phone}
+                        value={profileData.telefone}
                         onChange={handleProfileChange}
                         required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="endereco">Endereço</Label>
+                      <Input
+                        id="endereco"
+                        name="endereco"
+                        type="text"
+                        placeholder="Seu endereço (opcional)"
+                        value={profileData.endereco}
+                        onChange={handleProfileChange}
                       />
                     </div>
                     

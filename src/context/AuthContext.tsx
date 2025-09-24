@@ -1,17 +1,20 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { authApi, Cliente } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 
 interface User {
-  id: string;
-  name: string;
+  id: number;
+  nome: string;
   email: string;
-  phone: string;
+  telefone: string;
+  endereco?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, phone: string, password: string) => Promise<boolean>;
-  updateProfile: (name: string, email: string, phone: string) => Promise<boolean>;
+  register: (name: string, email: string, phone: string, password: string, address?: string) => Promise<boolean>;
+  updateProfile: (name: string, email: string, phone: string, address?: string) => Promise<boolean>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -27,107 +30,148 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simular carregamento inicial - verificar se há usuário salvo
+  // Verificar se há usuário autenticado ao carregar
   useEffect(() => {
-    const savedUser = localStorage.getItem("imperial_pet_user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
+    const checkAuth = async () => {
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        try {
+          const userData = await authApi.getProfile();
+          setUser({
+            id: userData.id,
+            nome: userData.nome,
+            email: userData.email,
+            telefone: userData.telefone,
+            endereco: userData.endereco,
+          });
+        } catch (error) {
+          // Token inválido, remover
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("userData");
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simular autenticação - em produção, seria uma chamada para API
-    const users = JSON.parse(localStorage.getItem("imperial_pet_users") || "[]");
-    const foundUser = users.find((u: any) => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const userData = {
-        id: foundUser.id,
-        name: foundUser.name,
-        email: foundUser.email,
-        phone: foundUser.phone,
-      };
-      setUser(userData);
-      localStorage.setItem("imperial_pet_user", JSON.stringify(userData));
-      setIsLoading(false);
-      return true;
-    }
-    
-    setIsLoading(false);
-    return false;
-  };
-
-  const register = async (name: string, email: string, phone: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Simular registro - em produção, seria uma chamada para API
-    const users = JSON.parse(localStorage.getItem("imperial_pet_users") || "[]");
-    
-    // Verificar se email já existe
-    if (users.find((u: any) => u.email === email)) {
-      setIsLoading(false);
-      return false;
-    }
-    
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      phone,
-      password, // Em produção, seria hasheado
-    };
-    
-    users.push(newUser);
-    localStorage.setItem("imperial_pet_users", JSON.stringify(users));
-    
-    const userData = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      phone: newUser.phone,
-    };
-    
-    setUser(userData);
-    localStorage.setItem("imperial_pet_user", JSON.stringify(userData));
-    setIsLoading(false);
-    return true;
-  };
-
-  const updateProfile = async (name: string, email: string, phone: string): Promise<boolean> => {
-    setIsLoading(true);
-    
     try {
-      // Simular atualização - em produção, seria uma chamada para API
-      const users = JSON.parse(localStorage.getItem("imperial_pet_users") || "[]");
-      const userIndex = users.findIndex((u: any) => u.id === user?.id);
+      const response = await authApi.login(email, password);
       
-      if (userIndex === -1) {
-        setIsLoading(false);
-        return false;
-      }
+      // Salvar token
+      localStorage.setItem("authToken", response.token);
+      localStorage.setItem("userData", JSON.stringify(response.cliente));
       
-      // Verificar se o novo email já existe (e não é o email atual do usuário)
-      const emailExists = users.find((u: any) => u.email === email && u.id !== user?.id);
-      if (emailExists) {
-        setIsLoading(false);
-        return false;
-      }
+      setUser({
+        id: response.cliente.id,
+        nome: response.cliente.nome,
+        email: response.cliente.email,
+        telefone: response.cliente.telefone,
+        endereco: response.cliente.endereco,
+      });
       
-      // Atualizar dados do usuário
-      users[userIndex] = { ...users[userIndex], name, email, phone };
-      localStorage.setItem("imperial_pet_users", JSON.stringify(users));
-      
-      // Atualizar usuário logado
-      const updatedUser = { id: user!.id, name, email, phone };
-      setUser(updatedUser);
-      localStorage.setItem("imperial_pet_user", JSON.stringify(updatedUser));
+      toast({
+        title: "Login realizado com sucesso!",
+        description: `Bem-vindo(a), ${response.cliente.nome}!`,
+      });
       
       setIsLoading(false);
       return true;
     } catch (error) {
+      console.error("Erro no login:", error);
+      toast({
+        title: "Erro no login",
+        description: error instanceof Error ? error.message : "Credenciais inválidas",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const register = async (name: string, email: string, phone: string, password: string, address?: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      const response = await authApi.register({
+        nome: name,
+        email,
+        password,
+        telefone: phone,
+        endereco: address,
+      });
+      
+      // Salvar token
+      localStorage.setItem("authToken", response.token);
+      localStorage.setItem("userData", JSON.stringify(response.cliente));
+      
+      setUser({
+        id: response.cliente.id,
+        nome: response.cliente.nome,
+        email: response.cliente.email,
+        telefone: response.cliente.telefone,
+        endereco: response.cliente.endereco,
+      });
+      
+      toast({
+        title: "Cadastro realizado com sucesso!",
+        description: `Bem-vindo(a), ${response.cliente.nome}!`,
+      });
+      
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      console.error("Erro no registro:", error);
+      toast({
+        title: "Erro no cadastro",
+        description: error instanceof Error ? error.message : "Erro ao criar conta",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const updateProfile = async (name: string, email: string, phone: string, address?: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      const response = await authApi.updateProfile({
+        nome: name,
+        email,
+        telefone: phone,
+        endereco: address,
+      });
+      
+      const updatedUser = {
+        id: response.id,
+        nome: response.nome,
+        email: response.email,
+        telefone: response.telefone,
+        endereco: response.endereco,
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem("userData", JSON.stringify(response));
+      
+      toast({
+        title: "Perfil atualizado com sucesso!",
+        description: "Suas informações foram salvas.",
+      });
+      
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      toast({
+        title: "Erro ao atualizar perfil",
+        description: error instanceof Error ? error.message : "Erro ao salvar informações",
+        variant: "destructive",
+      });
       setIsLoading(false);
       return false;
     }
@@ -137,28 +181,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(true);
     
     try {
-      // Simular verificação de senha - em produção, seria uma chamada para API
-      const users = JSON.parse(localStorage.getItem("imperial_pet_users") || "[]");
-      const userIndex = users.findIndex((u: any) => u.id === user?.id);
-      
-      if (userIndex === -1) {
-        setIsLoading(false);
-        return false;
-      }
-      
-      // Verificar senha atual
-      if (users[userIndex].password !== currentPassword) {
-        setIsLoading(false);
-        return false;
-      }
-      
-      // Atualizar senha
-      users[userIndex].password = newPassword;
-      localStorage.setItem("imperial_pet_users", JSON.stringify(users));
+      // TODO: Implementar endpoint de mudança de senha na API
+      // Por enquanto, retornamos false
+      toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: "A alteração de senha será implementada em breve",
+        variant: "destructive",
+      });
       
       setIsLoading(false);
-      return true;
+      return false;
     } catch (error) {
+      console.error("Erro ao alterar senha:", error);
+      toast({
+        title: "Erro ao alterar senha",
+        description: error instanceof Error ? error.message : "Erro interno",
+        variant: "destructive",
+      });
       setIsLoading(false);
       return false;
     }
@@ -166,7 +205,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("imperial_pet_user");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso",
+    });
   };
 
   return (

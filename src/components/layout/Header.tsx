@@ -1,9 +1,11 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, User, LogOut, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -11,6 +13,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export const Header = () => {
   const { items, total, remove, updateQty } = useCart();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   // Efeito para rolar para o topo quando a rota muda
@@ -42,6 +45,17 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Botão de Agendamento */}
+          {user && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/agendamento">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Agendamento</span>
+              </Link>
+            </Button>
+          )}
+
+          {/* Carrinho */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="hero" size="sm" aria-label="Abrir carrinho">
@@ -92,6 +106,38 @@ export const Header = () => {
               </div>
             </SheetContent>
           </Sheet>
+
+          {/* Menu do Usuário */}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/agendamento">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Agendamentos
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/login">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Entrar</span>
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>

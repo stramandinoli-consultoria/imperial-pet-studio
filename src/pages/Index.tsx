@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { products } from "@/data/products";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 
 type Props = { initialSection?: "servicos" | "produtos" | "contato" };
 
 const Index = ({ initialSection }: Props) => {
   const { add } = useCart();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (initialSection) {
@@ -35,7 +38,15 @@ const Index = ({ initialSection }: Props) => {
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">Imperial Pet Studio</h1>
             <p className="mt-3 text-lg text-muted-foreground">Elegância para o seu melhor amigo. Banho e tosa premium, com produtos selecionados para cães e gatos.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Button variant="hero" size="lg" onClick={() => document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" })}>Agendar Banho & Tosa</Button>
+              {user ? (
+                <Button variant="hero" size="lg" asChild>
+                  <Link to="/agendamento">Agendar Banho & Tosa</Link>
+                </Button>
+              ) : (
+                <Button variant="hero" size="lg" asChild>
+                  <Link to="/login">Agendar Banho & Tosa</Link>
+                </Button>
+              )}
               <a href="#produtos" className="inline-flex"><Button variant="outline" size="lg">Ver Produtos</Button></a>
             </div>
           </div>
@@ -64,7 +75,15 @@ const Index = ({ initialSection }: Props) => {
                 <p className="text-muted-foreground">{s.desc}</p>
                 <p className="mt-3 font-semibold">{s.price}</p>
                 <div className="mt-4">
-                  <Button variant="hero">Agendar</Button>
+                  {user ? (
+                    <Button variant="hero" asChild>
+                      <Link to="/agendamento">Agendar</Link>
+                    </Button>
+                  ) : (
+                    <Button variant="hero" asChild>
+                      <Link to="/login">Agendar</Link>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

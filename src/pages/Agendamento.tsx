@@ -66,7 +66,7 @@ const Agendamento = () => {
 
   // Função auxiliar para extrair preço do serviço
   const getPrecoServico = (servico: any): number => {
-    return servico.preco || servico.Preco || 0;
+    return servico.precoBase || servico.preco || servico.Preco || 0;
   };
 
   const handleInputChange = (name: string, value: string) => {
@@ -106,14 +106,57 @@ const Agendamento = () => {
       return;
     }
 
-    const dataHorario = `${data}T${horario}:00`;
+    // Normaliza o horário: aceita 'HH:MM' ou 'HH:MM:SS'
+    const horarioRaw = (horario || '').trim();
+    if (!horarioRaw) {
+      toast({
+        title: 'Erro',
+        description: 'Horário não selecionado. Escolha um horário disponível.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const parts = horarioRaw.split(':').map(p => p.trim());
+    let timePart = '';
+    if (parts.length === 2) {
+      // HH:MM -> adicionar segundos
+      timePart = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:00`;
+    } else if (parts.length === 3) {
+      // HH:MM:SS -> usar como está, garantindo padding
+      timePart = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:${parts[2].padStart(2, '0')}`;
+    } else {
+      console.error('Formato de horário inesperado:', { horarioRaw });
+      toast({
+        title: 'Erro',
+        description: 'Formato de horário inválido. Selecione um horário válido.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const dateStr = `${data}T${timePart}`;
+    const dataObj = new Date(dateStr);
+    // Validação: checar se a data é válida antes de usar toISOString
+    if (isNaN(dataObj.getTime())) {
+      console.error('Invalid date/time for agendamento:', { dateStr, data, horario });
+      toast({
+        title: 'Erro',
+        description: 'Data ou horário inválido. Verifique a seleção.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const dataHoraISO = dataObj.toISOString();
 
     try {
+      // Monta payload conforme API: dataHora, observacoes, clienteId, petId, servicoIds
       await createAgendamento.mutateAsync({
+        dataHora: dataHoraISO,
+        observacoes: observacoes || '',
+        clienteId: user?.id ?? 0,
         petId: parseInt(petId),
-        servicoId: parseInt(servicoId),
-        dataHorario,
-        observacoes: observacoes || undefined,
+        servicoIds: [parseInt(servicoId)],
       });
 
       // Limpar formulário
@@ -185,10 +228,7 @@ const Agendamento = () => {
             Olá, {user?.nome || 'usuário'}! Agende serviços para seu pet de forma rápida e prática.
           </p>
           
-          {/* Debug info - remover depois */}
-          <div className="text-xs text-gray-500 mt-2">
-            Debug: Pets={pets?.length}, Serviços={servicos?.length}, Agendamentos={agendamentos?.length}
-          </div>
+          
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -360,17 +400,23 @@ const Agendamento = () => {
                     <div key={agendamento.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="font-semibold">{agendamento.servico?.nome}</h4>
+                          <h4 className="font-semibold">
+                            {/* Mostrar serviços da lista ou fallback para compatibilidade */}
+                            {agendamento.servicos && agendamento.servicos.length > 0 
+                              ? agendamento.servicos.map(s => s.nome).join(', ')
+                              : agendamento.servico?.nome || 'Serviço não especificado'
+                            }
+                          </h4>
                           <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
                             <User className="h-4 w-4" />
-                            {agendamento.pet?.nome} ({agendamento.pet?.especie})
+                            {agendamento.nomePet || agendamento.pet?.nome || 'Pet não especificado'}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={getStatusColor(agendamento.status)}>
                             {formatStatus(agendamento.status)}
                           </Badge>
-                          {agendamento.status === "Aguardando" && (
+                          {(agendamento.status === "Aguardando" || agendamento.status === "Agendado") && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -386,14 +432,20 @@ const Agendamento = () => {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
-                          {new Date(agendamento.dataHorario).toLocaleDateString('pt-BR')}
+                          {agendamento.dataHora && agendamento.dataHora !== '0001-01-01T00:00:00' 
+                            ? new Date(agendamento.dataHora).toLocaleDateString('pt-BR')
+                            : new Date(agendamento.dataHorario || agendamento.dataCriacao).toLocaleDateString('pt-BR')
+                          }
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          {new Date(agendamento.dataHorario).toLocaleTimeString('pt-BR', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
+                          {agendamento.dataHora && agendamento.dataHora !== '0001-01-01T00:00:00'
+                            ? new Date(agendamento.dataHora).toLocaleTimeString('pt-BR', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })
+                            : 'Horário não definido'
+                          }
                         </div>
                       </div>
 
@@ -403,11 +455,9 @@ const Agendamento = () => {
                         </div>
                       )}
 
-                      {agendamento.servico && (
-                        <div className="text-sm font-semibold text-primary">
-                          R$ {getPrecoServico(agendamento.servico).toFixed(2)}
-                        </div>
-                      )}
+                      <div className="text-sm font-semibold text-primary">
+                        R$ {agendamento.valorTotal ? agendamento.valorTotal.toFixed(2) : '0,00'}
+                      </div>
                     </div>
                   ))}
                 </div>

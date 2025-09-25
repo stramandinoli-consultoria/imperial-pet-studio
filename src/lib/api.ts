@@ -89,16 +89,21 @@ export interface Servico {
   id: number;
   nome: string;
   descricao: string;
-  preco?: number;  // Tornado opcional para evitar erros
-  Preco?: number;  // API pode retornar com P maiúsculo
-  duracao: number;
-  Duracao?: number; // API pode retornar com D maiúsculo
-  tipo: string;
-  Tipo?: string;   // API pode retornar com T maiúsculo
-  tipoPet?: string;
-  TipoPet?: string; // API pode retornar com T maiúsculo
+  precoBase: number;
+  categoria: string;
+  duracaoMinutos: number;
   ativo: boolean;
-  Ativo?: boolean;  // API pode retornar com A maiúsculo
+  dataCadastro: string;
+  // Campos de compatibilidade (caso a API mude)
+  preco?: number;
+  Preco?: number;
+  duracao?: number;
+  Duracao?: number;
+  tipo?: string;
+  Tipo?: string;
+  tipoPet?: string;
+  TipoPet?: string;
+  Ativo?: boolean;
 }
 
 export interface Produto {
@@ -116,12 +121,20 @@ export interface Produto {
 
 export interface Agendamento {
   id: number;
-  clienteId: number;
-  petId: number;
-  servicoId: number;
-  dataHorario: string;
+  dataHora: string;
   status: string;
   observacoes?: string;
+  valorTotal: number;
+  dataCriacao: string;
+  dataConclusao?: string | null;
+  clienteId: number;
+  nomeCliente: string;
+  petId: number;
+  nomePet: string;
+  servicos: Servico[];
+  // Campos de compatibilidade para versões antigas
+  servicoId?: number;
+  dataHorario?: string;
   pet?: Pet;
   servico?: Servico;
 }
@@ -218,19 +231,19 @@ export const servicosApi = {
     if (tipoPet) params.append('tipoPet', tipoPet);
     
     const query = params.toString() ? `?${params.toString()}` : '';
-    return apiRequest<Servico[]>(`/servicos${query}`);
+    return apiRequest<Servico[]>(`/Servicos${query}`);
   },
 
   getById: async (id: number) => {
-    return apiRequest<Servico>(`/servicos/${id}`);
+    return apiRequest<Servico>(`/Servicos/${id}`);
   },
 
   getTipos: async () => {
-    return apiRequest<string[]>('/servicos/tipos');
+    return apiRequest<string[]>('/Servicos/tipos');
   },
 
   getHorariosDisponiveis: async (servicoId: number, data: string) => {
-    return apiRequest<string[]>(`/servicos/${servicoId}/horarios-disponiveis?data=${data}`);
+    return apiRequest<string[]>(`/Servicos/${servicoId}/horarios-disponiveis?data=${data}`);
   },
 };
 
@@ -262,34 +275,46 @@ export const produtosApi = {
 // APIs de Agendamentos
 export const agendamentosApi = {
   getAll: async () => {
-    return apiRequest<Agendamento[]>('/agendamentos');
+    return apiRequest<Agendamento[]>('/Agendamentos');
   },
 
   getById: async (id: number) => {
-    return apiRequest<Agendamento>(`/agendamentos/${id}`);
+    return apiRequest<Agendamento>(`/Agendamentos/${id}`);
   },
 
   create: async (agendamentoData: {
+    dataHora: string;
+    observacoes: string;
+    clienteId: number;
     petId: number;
-    servicoId: number;
-    dataHorario: string;
-    observacoes?: string;
+    servicoIds: number[] | number;
   }) => {
-    return apiRequest<Agendamento>('/agendamentos', {
+    // Garante que servicoIds sempre será um array
+    const servicoIdsArray = Array.isArray(agendamentoData.servicoIds)
+      ? agendamentoData.servicoIds
+      : [agendamentoData.servicoIds];
+    const apiData = {
+      dataHora: agendamentoData.dataHora,
+      observacoes: agendamentoData.observacoes,
+      clienteId: agendamentoData.clienteId,
+      petId: agendamentoData.petId,
+      servicoIds: servicoIdsArray,
+    };
+    return apiRequest<Agendamento>('/Agendamentos', {
       method: 'POST',
-      body: JSON.stringify(agendamentoData),
+      body: JSON.stringify(apiData),
     });
   },
 
   update: async (id: number, agendamentoData: Partial<Agendamento>) => {
-    return apiRequest<Agendamento>(`/agendamentos/${id}`, {
+    return apiRequest<Agendamento>(`/Agendamentos/${id}`, {
       method: 'PUT',
       body: JSON.stringify(agendamentoData),
     });
   },
 
   updateStatus: async (id: number, status: string) => {
-    return apiRequest<void>(`/agendamentos/${id}/status`, {
+    return apiRequest<void>(`/Agendamentos/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify(status),
       headers: {
@@ -299,8 +324,8 @@ export const agendamentosApi = {
   },
 
   cancel: async (id: number) => {
-    return apiRequest<void>(`/agendamentos/${id}/cancel`, {
-      method: 'PATCH',
+    return apiRequest<void>(`/Agendamentos/${id}/cancel`, {
+      method: 'POST',
     });
   },
 };

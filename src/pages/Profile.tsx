@@ -19,7 +19,14 @@ const Profile = () => {
     nome: "",
     email: "",
     telefone: "",
-    endereco: ""
+    cpf: "",
+    logradouro: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    cep: ""
   });
   
   const [passwordData, setPasswordData] = useState({
@@ -43,7 +50,14 @@ const Profile = () => {
         nome: user.nome,
         email: user.email,
         telefone: user.telefone,
-        endereco: user.endereco || ""
+        cpf: user.cpf || "",
+        logradouro: user.logradouro || "",
+        numero: user.numero || "",
+        complemento: user.complemento || "",
+        bairro: user.bairro || "",
+        cidade: user.cidade || "",
+        estado: user.estado || "",
+        cep: user.cep || ""
       });
     }
   }, [user]);
@@ -65,7 +79,7 @@ const Profile = () => {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { nome, email, telefone, endereco } = profileData;
+    const { nome, email, telefone, cpf, logradouro, numero, complemento, bairro, cidade, estado, cep } = profileData;
     
     if (!nome || !email || !telefone) {
       toast({
@@ -78,7 +92,7 @@ const Profile = () => {
 
     setIsUpdatingProfile(true);
     
-    const success = await updateProfile(nome, email, telefone, endereco);
+    const success = await updateProfile(nome, email, telefone, cpf, logradouro, numero, complemento, bairro, cidade, estado, cep);
     
     if (success) {
       toast({
@@ -220,29 +234,124 @@ const Profile = () => {
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="telefone">Telefone</Label>
-                      <Input
-                        id="telefone"
-                        name="telefone"
-                        type="tel"
-                        placeholder="(11) 99999-9999"
-                        value={profileData.telefone}
-                        onChange={handleProfileChange}
-                        required
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="telefone">Telefone</Label>
+                        <Input
+                          id="telefone"
+                          name="telefone"
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={profileData.telefone}
+                          onChange={handleProfileChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="cpf">CPF</Label>
+                        <Input
+                          id="cpf"
+                          name="cpf"
+                          type="text"
+                          placeholder="000.000.000-00"
+                          value={profileData.cpf}
+                          onChange={handleProfileChange}
+                        />
+                      </div>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="endereco">Endereço</Label>
-                      <Input
-                        id="endereco"
-                        name="endereco"
-                        type="text"
-                        placeholder="Seu endereço (opcional)"
-                        value={profileData.endereco}
-                        onChange={handleProfileChange}
-                      />
+
+                    <div className="pt-2">
+                      <p className="text-sm font-medium text-muted-foreground mb-3">Endereço</p>
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="col-span-2 space-y-2">
+                            <Label htmlFor="logradouro">Logradouro</Label>
+                            <Input
+                              id="logradouro"
+                              name="logradouro"
+                              type="text"
+                              placeholder="Rua, Av., etc."
+                              value={profileData.logradouro}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="numero">Número</Label>
+                            <Input
+                              id="numero"
+                              name="numero"
+                              type="text"
+                              placeholder="123"
+                              value={profileData.numero}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="complemento">Complemento</Label>
+                            <Input
+                              id="complemento"
+                              name="complemento"
+                              type="text"
+                              placeholder="Apto, Bloco, etc."
+                              value={profileData.complemento}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="bairro">Bairro</Label>
+                            <Input
+                              id="bairro"
+                              name="bairro"
+                              type="text"
+                              placeholder="Seu bairro"
+                              value={profileData.bairro}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="col-span-1 space-y-2">
+                            <Label htmlFor="cep">CEP</Label>
+                            <Input
+                              id="cep"
+                              name="cep"
+                              type="text"
+                              placeholder="00000-000"
+                              value={profileData.cep}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                          <div className="col-span-1 space-y-2">
+                            <Label htmlFor="cidade">Cidade</Label>
+                            <Input
+                              id="cidade"
+                              name="cidade"
+                              type="text"
+                              placeholder="Sua cidade"
+                              value={profileData.cidade}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                          <div className="col-span-1 space-y-2">
+                            <Label htmlFor="estado">Estado</Label>
+                            <Input
+                              id="estado"
+                              name="estado"
+                              type="text"
+                              placeholder="SP"
+                              maxLength={2}
+                              value={profileData.estado}
+                              onChange={handleProfileChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     
                     <Button 

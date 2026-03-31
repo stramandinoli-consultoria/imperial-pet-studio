@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { authApi, Cliente } from "@/lib/api";
+import { authApi, Cliente, roletaAdminApi } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 interface User {
@@ -7,14 +7,33 @@ interface User {
   nome: string;
   email: string;
   telefone: string;
-  endereco?: string;
+  cpf?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  isAdmin?: boolean;
+}
+
+interface AdminInfo {
+  id: number;
+  nome: string;
+  login: string;
+  perfil: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
+  adminInfo: AdminInfo | null;
+  adminLogin: (login: string, senha: string) => Promise<boolean>;
+  adminLogout: () => void;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, phone: string, password: string, address?: string) => Promise<boolean>;
-  updateProfile: (name: string, email: string, phone: string, address?: string) => Promise<boolean>;
+  register: (name: string, email: string, phone: string, password: string, cpf?: string, logradouro?: string, numero?: string, complemento?: string, bairro?: string, cidade?: string, estado?: string, cep?: string) => Promise<boolean>;
+  updateProfile: (nome: string, email: string, telefone: string, cpf?: string, logradouro?: string, numero?: string, complemento?: string, bairro?: string, cidade?: string, estado?: string, cep?: string) => Promise<boolean>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -29,6 +48,11 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(() => {
+    const stored = localStorage.getItem("adminInfo");
+    return stored ? JSON.parse(stored) : null;
+  });
+  const isAdmin = user?.isAdmin === true || (adminInfo !== null && !!localStorage.getItem("adminToken"));
 
   // Verificar se há usuário autenticado ao carregar
   useEffect(() => {
@@ -42,7 +66,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             nome: userData.nome,
             email: userData.email,
             telefone: userData.telefone,
-            endereco: userData.endereco,
+            cpf: userData.cpf,
+            logradouro: userData.logradouro,
+            numero: userData.numero,
+            complemento: userData.complemento,
+            bairro: userData.bairro,
+            cidade: userData.cidade,
+            estado: userData.estado,
+            cep: userData.cep,
+            isAdmin: (userData as any).isAdmin ?? false,
           });
         } catch (error) {
           // Token inválido, remover
@@ -71,7 +103,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         nome: response.cliente.nome,
         email: response.cliente.email,
         telefone: response.cliente.telefone,
-        endereco: response.cliente.endereco,
+        cpf: response.cliente.cpf,
+        logradouro: response.cliente.logradouro,
+        numero: response.cliente.numero,
+        complemento: response.cliente.complemento,
+        bairro: response.cliente.bairro,
+        cidade: response.cliente.cidade,
+        estado: response.cliente.estado,
+        cep: response.cliente.cep,
+        isAdmin: (response.cliente as any).isAdmin ?? false,
       });
       
       toast({
@@ -93,7 +133,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const register = async (name: string, email: string, phone: string, password: string, address?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, phone: string, password: string, cpf?: string, logradouro?: string, numero?: string, complemento?: string, bairro?: string, cidade?: string, estado?: string, cep?: string): Promise<boolean> => {
     setIsLoading(true);
     
     try {
@@ -102,7 +142,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email,
         password,
         telefone: phone,
-        endereco: address,
+        cpf,
+        logradouro,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        estado,
+        cep,
       });
       
       // Salvar token
@@ -114,7 +161,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         nome: response.cliente.nome,
         email: response.cliente.email,
         telefone: response.cliente.telefone,
-        endereco: response.cliente.endereco,
+        cpf: response.cliente.cpf,
+        logradouro: response.cliente.logradouro,
+        numero: response.cliente.numero,
+        complemento: response.cliente.complemento,
+        bairro: response.cliente.bairro,
+        cidade: response.cliente.cidade,
+        estado: response.cliente.estado,
+        cep: response.cliente.cep,
+        isAdmin: (response.cliente as any).isAdmin ?? false,
       });
       
       toast({
@@ -136,15 +191,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const updateProfile = async (name: string, email: string, phone: string, address?: string): Promise<boolean> => {
+  const updateProfile = async (nome: string, email: string, telefone: string, cpf?: string, logradouro?: string, numero?: string, complemento?: string, bairro?: string, cidade?: string, estado?: string, cep?: string): Promise<boolean> => {
     setIsLoading(true);
     
     try {
       const response = await authApi.updateProfile({
-        nome: name,
+        nome,
         email,
-        telefone: phone,
-        endereco: address,
+        telefone,
+        cpf,
+        logradouro,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        estado,
+        cep,
       });
       
       const updatedUser = {
@@ -152,7 +214,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         nome: response.nome,
         email: response.email,
         telefone: response.telefone,
-        endereco: response.endereco,
+        cpf: response.cpf,
+        logradouro: response.logradouro,
+        numero: response.numero,
+        complemento: response.complemento,
+        bairro: response.bairro,
+        cidade: response.cidade,
+        estado: response.estado,
+        cep: response.cep,
       };
       
       setUser(updatedUser);
@@ -213,8 +282,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
   };
 
+  const adminLogin = async (login: string, senha: string): Promise<boolean> => {
+    try {
+      const response = await roletaAdminApi.adminLogin(login, senha);
+      localStorage.setItem("adminToken", response.token);
+      localStorage.setItem("adminInfo", JSON.stringify(response.usuario));
+      setAdminInfo(response.usuario);
+      toast({ title: "Login admin realizado!", description: `Bem-vindo(a), ${response.usuario.nome}!` });
+      return true;
+    } catch (error) {
+      toast({
+        title: "Erro no login admin",
+        description: error instanceof Error ? error.message : "Credenciais inválidas",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const adminLogout = () => {
+    setAdminInfo(null);
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminInfo");
+    toast({ title: "Admin desconectado" });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, updateProfile, changePassword, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, isAdmin, adminInfo, adminLogin, adminLogout, login, register, updateProfile, changePassword, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

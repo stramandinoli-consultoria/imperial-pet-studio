@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-imperial.jpg";
@@ -9,12 +9,18 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
+import { servicosApi, Servico } from "@/lib/api";
 
 type Props = { initialSection?: "servicos" | "produtos" | "contato" };
 
 const Index = ({ initialSection }: Props) => {
   const { add } = useCart();
   const { user } = useAuth();
+  const [servicos, setServicos] = useState<Servico[]>([]);
+
+  useEffect(() => {
+    servicosApi.getAll().then(setServicos).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (initialSection) {
@@ -62,18 +68,16 @@ const Index = ({ initialSection }: Props) => {
         <h2 className="text-3xl font-semibold">Serviços de Banho & Tosa</h2>
         <p className="mt-2 text-muted-foreground">Cuidamos do seu pet com carinho e técnica profissional.</p>
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { title: "Banho Premium", desc: "Higienização completa com produtos hipoalergênicos.", price: "a partir de R$ 60" },
-            { title: "Tosa na Tesoura", desc: "Corte artístico e personalizado para cada raça.", price: "a partir de R$ 90" },
-            { title: "Higiene Completa", desc: "Corte de unhas, limpeza de ouvidos e hidratação.", price: "a partir de R$ 45" },
-          ].map((s) => (
-            <Card key={s.title} className="shadow-sm">
+          {servicos.map((s) => (
+            <Card key={s.id} className="shadow-sm">
               <CardHeader>
-                <CardTitle>{s.title}</CardTitle>
+                <CardTitle>{s.nome}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{s.desc}</p>
-                <p className="mt-3 font-semibold">{s.price}</p>
+                <p className="text-muted-foreground">{s.descricao}</p>
+                <p className="mt-3 font-semibold">
+                  a partir de R$ {s.precoBase.toFixed(2).replace(".", ",")}
+                </p>
                 <div className="mt-4">
                   {user ? (
                     <Button variant="hero" asChild>

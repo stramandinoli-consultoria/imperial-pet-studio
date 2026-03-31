@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ShoppingCart, User, LogOut, Calendar, Heart } from "lucide-react";
+import { ShoppingCart, User, LogOut, Calendar, Heart, Dice5, Settings, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +13,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export const Header = () => {
   const { items, total, remove, updateQty } = useCart();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
 
   // Efeito para rolar para o topo quando a rota muda
@@ -42,6 +42,7 @@ export const Header = () => {
           <NavLink to="/servicos" className={navLinkClass}>Serviços</NavLink>
           <NavLink to="/produtos" className={navLinkClass}>Produtos</NavLink>
           <NavLink to="/contato" className={navLinkClass}>Contato</NavLink>
+          <NavLink to="/roleta" className={navLinkClass}>Roleta</NavLink>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -123,18 +124,46 @@ export const Header = () => {
                     Meu Perfil
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/meus-pets">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Meus Pets
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/agendamento">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Agendamentos
-                  </Link>
-                </DropdownMenuItem>
+                {!isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/meus-pets">
+                      <Heart className="h-4 w-4 mr-2" />
+                      Meus Pets
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {!isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/agendamento">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Agendamentos
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {!isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/roleta">
+                      <Dice5 className="h-4 w-4 mr-2" />
+                      Roleta da Sorte
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Painel Admin
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/roleta/admin">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Admin Roleta
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                   <LogOut className="h-4 w-4 mr-2" />
@@ -143,12 +172,28 @@ export const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Entrar</span>
-              </Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Entrar</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/login">
+                    <User className="h-4 w-4 mr-2" />
+                    Entrar como Cliente
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/login?tipo=admin">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Entrar como Admin
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

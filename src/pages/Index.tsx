@@ -5,7 +5,6 @@ import heroImage from "@/assets/hero-imperial.jpg";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { products } from "@/data/products";
-import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
@@ -14,7 +13,6 @@ import { servicosApi, Servico } from "@/lib/api";
 type Props = { initialSection?: "servicos" | "produtos" | "contato" };
 
 const Index = ({ initialSection }: Props) => {
-  const { add } = useCart();
   const { user } = useAuth();
   const [servicos, setServicos] = useState<Servico[]>([]);
 
@@ -114,9 +112,8 @@ const Index = ({ initialSection }: Props) => {
                     <CardContent className="pt-4">
                       <p className="font-medium">{p.name}</p>
                       <p className="text-sm text-muted-foreground capitalize">{p.pet === 'caes' ? 'para cães' : p.pet === 'gatos' ? 'para gatos' : 'para ambos'}</p>
-                      <div className="mt-3 flex items-center justify-between">
+                      <div className="mt-3 flex items-center">
                         <span className="font-semibold">R$ {p.price.toFixed(2)}</span>
-                        <Button size="sm" variant="hero" onClick={() => add(p)}>Adicionar</Button>
                       </div>
                     </CardContent>
                   </Card>

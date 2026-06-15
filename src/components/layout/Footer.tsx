@@ -26,7 +26,18 @@ export const Footer = () => {
           </ul>
         </div>
       </div>
-      <div className="border-t py-4 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Imperial Pet Studio. Todos os direitos reservados.</div>
+      <div className="border-t py-4 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} Imperial Pet Studio. Direito autoral da criação do site e da API por{" "}
+        <a
+          href="https://carlosestramandinoli.com.br/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-4 hover:text-foreground"
+        >
+          Carlos Eduardo Stramandinoli Leme
+        </a>
+        .
+      </div>
     </footer>
   );
 };

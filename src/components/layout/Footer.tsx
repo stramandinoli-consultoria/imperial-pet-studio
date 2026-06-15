@@ -9,21 +9,35 @@ export const Footer = () => {
         <div>
           <p className="font-semibold">Contato</p>
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-            <li>WhatsApp: (00) 00000-0000</li>
-            <li>Email: contato@imperialpet.studio</li>
-            <li>Endereço: Rua dos Pets, 123, Centro</li>
+            <li>WhatsApp: (11) 94753-9384</li>
+            <li>Email: imperialpetstudio@gmail.com</li>
+            <li>CNPJ: 14.197.223/0001-03</li>
+            <li>Rua Luiz Onofre de Amorim nº 50, Bloco "D"</li>
+            <li>Parque Fernão Dias, Atibaia (SP) — CEP 12.948-009</li>
+            <li>Outlet Fernão Dias</li>
           </ul>
         </div>
         <div>
           <p className="font-semibold">Horário</p>
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-            <li>Seg–Sex: 9h às 19h</li>
-            <li>Sábado: 9h às 17h</li>
+            <li>Seg–Sex: 9h às 21h</li>
+            <li>Sábado: 9h às 21h</li>
             <li>Domingo: fechado</li>
           </ul>
         </div>
       </div>
-      <div className="border-t py-4 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Imperial Pet Studio. Todos os direitos reservados.</div>
+      <div className="border-t py-4 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} Imperial Pet Studio. Direito autoral da criação do site e da API por{" "}
+        <a
+          href="https://carlosestramandinoli.com.br/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-4 hover:text-foreground"
+        >
+          Carlos Eduardo Stramandinoli Leme
+        </a>
+        .
+      </div>
     </footer>
   );
 };

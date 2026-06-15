@@ -1,53 +1,56 @@
 # Imperial Pet Studio
 
-## Project info
+## Informações do Projeto
 
-**Description**: Site para banho e tosa, produtos para pets
+**Descrição**: Site para banho e tosa, produtos para pets  
 **Website**: https://imperialpets.com.br
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Como editar este código?
 
-**Use your preferred IDE**
+Existem algumas formas de editar a aplicação.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+### Usando sua IDE preferida
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Se quiser trabalhar localmente com sua própria IDE, clone o repositório e envie as alterações.  
+O único requisito é ter Node.js e npm instalados — [instale com o nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-Follow these steps:
+Siga os passos abaixo:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Passo 1: Clone o repositório usando a URL do projeto.
+git clone <SUA_URL_GIT>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Passo 2: Navegue até o diretório do projeto.
+cd <NOME_DO_PROJETO>
 
-# Step 3: Install the necessary dependencies.
+# Passo 3: Instale as dependências necessárias.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Passo 4: Inicie o servidor de desenvolvimento com recarregamento automático.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Editando diretamente no GitHub
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Navegue até o arquivo desejado.
+- Clique no botão **Editar** (ícone de lápis) no canto superior direito.
+- Faça suas alterações e confirme o commit.
 
-**Use GitHub Codespaces**
+### Usando o GitHub Codespaces
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Acesse a página principal do repositório.
+- Clique no botão **Code** (botão verde) no canto superior direito.
+- Selecione a aba **Codespaces**.
+- Clique em **New codespace** para abrir um novo ambiente.
+- Edite os arquivos diretamente no Codespace e faça commit e push ao finalizar.
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## Tecnologias utilizadas
+
+Este projeto foi construído com:
 
 - Vite
 - TypeScript
@@ -55,41 +58,49 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+---
 
-You can deploy this project using various hosting platforms such as Vercel, Netlify, or GitHub Pages.
+## Como fazer o deploy?
 
-## Domain Information
+O projeto pode ser publicado em diversas plataformas de hospedagem, como Vercel, Netlify ou GitHub Pages.
 
-This project is configured to use the custom domain: **imperialpets.com.br**
+---
 
-### Railway Deployment Instructions
+## Informações de Domínio
 
-To deploy this project on Railway with the custom domain:
+O projeto está configurado para usar o domínio personalizado: **imperialpets.com.br**
 
-1. **Link your repository to Railway**:
-   - Create a new project in Railway
-   - Connect your GitHub repository
-   - Railway will automatically detect and use the configuration from `railway.json`
-   - The project includes an `.npmrc` file that configures npm to exclude development dependencies in production
-   - The Vite configuration allows access from both the Railway domain and the custom domain
+### Deploy no Railway
 
-2. **Configure DNS settings**:
-   - Go to your domain registrar (e.g., GoDaddy, Namecheap)
-   - Add the following DNS records:
-     ```
-     A     imperialpets.com.br     76.76.21.21
-     CNAME www.imperialpets.com.br railway.app
-     ```
+Para publicar o projeto no Railway com o domínio personalizado:
 
-3. **Verify your domain on Railway**:
-   - In your Railway project, go to Settings > Domains
-   - Click "Add Domain" and enter `imperialpets.com.br`
-   - Railway will verify your DNS settings
-   - Add a second domain for `www.imperialpets.com.br` if needed
+**1. Vincule o repositório ao Railway**
 
-4. **SSL Certificate**:
-   - Railway will automatically provision an SSL certificate via Let's Encrypt
-   - This enables secure HTTPS access to your site
+- Crie um novo projeto no Railway
+- Conecte seu repositório do GitHub
+- O Railway detectará automaticamente a configuração do arquivo `railway.json`
+- O projeto inclui um arquivo `.npmrc` que configura o npm para excluir dependências de desenvolvimento em produção
+- A configuração do Vite permite acesso tanto pelo domínio do Railway quanto pelo domínio personalizado
 
-Your site will be accessible at https://imperialpets.com.br once the DNS propagation is complete (may take up to 24-48 hours).
+**2. Configure o DNS**
+
+No painel do seu registrador de domínio (ex: GoDaddy, Namecheap), adicione os seguintes registros:
+
+```
+A       imperialpets.com.br      76.76.21.21
+CNAME   www.imperialpets.com.br  railway.app
+```
+
+**3. Verifique o domínio no Railway**
+
+- No seu projeto Railway, acesse **Settings > Domains**
+- Clique em **Add Domain** e informe `imperialpets.com.br`
+- O Railway irá validar as configurações de DNS
+- Adicione também `www.imperialpets.com.br` se necessário
+
+**4. Certificado SSL**
+
+- O Railway provisiona automaticamente um certificado SSL via Let's Encrypt
+- Isso garante acesso seguro via HTTPS ao seu site
+
+> ⏱️ Após a configuração, o site estará acessível em https://imperialpets.com.br assim que a propagação de DNS for concluída (pode levar até 24-48 horas).

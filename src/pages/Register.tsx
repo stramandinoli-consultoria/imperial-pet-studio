@@ -14,8 +14,16 @@ const Register = () => {
     name: "",
     email: "",
     phone: "",
+    cpf: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    logradouro: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    cep: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
@@ -37,7 +45,7 @@ const Register = () => {
     if (!name || !email || !phone || !password || !confirmPassword) {
       toast({
         title: "Erro",
-        description: "Por favor, preencha todos os campos.",
+        description: "Por favor, preencha os campos obrigatórios (*)",
         variant: "destructive"
       });
       return;
@@ -63,7 +71,20 @@ const Register = () => {
 
     setIsSubmitting(true);
     
-    const success = await register(name, email, phone, password);
+    const success = await register(
+      name, 
+      email, 
+      phone, 
+      password, 
+      formData.cpf || undefined,
+      formData.logradouro || undefined,
+      formData.numero || undefined,
+      formData.complemento || undefined,
+      formData.bairro || undefined,
+      formData.cidade || undefined,
+      formData.estado || undefined,
+      formData.cep || undefined
+    );
     
     if (success) {
       toast({
@@ -90,7 +111,7 @@ const Register = () => {
       </Helmet>
 
       <div className="container py-12 md:py-16">
-        <div className="mx-auto max-w-md">
+        <div className="mx-auto max-w-2xl">
           <Card>
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Criar sua conta</CardTitle>
@@ -99,70 +120,188 @@ const Register = () => {
               </p>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Seção: Dados Pessoais */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Dados Pessoais</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome completo *</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">E-mail *</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefone *</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="(11) 99999-9999"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cpf">CPF</Label>
+                    <Input
+                      id="cpf"
+                      name="cpf"
+                      type="text"
+                      placeholder="000.000.000-00"
+                      value={formData.cpf}
+                      onChange={handleChange}
+                    />
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
+
+                {/* Seção: Endereço */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Endereço</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="logradouro">Rua/Logradouro</Label>
+                    <Input
+                      id="logradouro"
+                      name="logradouro"
+                      type="text"
+                      placeholder="Rua Exemplo"
+                      value={formData.logradouro}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="numero">Número</Label>
+                      <Input
+                        id="numero"
+                        name="numero"
+                        type="text"
+                        placeholder="123"
+                        value={formData.numero}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="complemento">Complemento</Label>
+                      <Input
+                        id="complemento"
+                        name="complemento"
+                        type="text"
+                        placeholder="Apt 45"
+                        value={formData.complemento}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="cep">CEP</Label>
+                      <Input
+                        id="cep"
+                        name="cep"
+                        type="text"
+                        placeholder="12345-678"
+                        value={formData.cep}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bairro">Bairro</Label>
+                      <Input
+                        id="bairro"
+                        name="bairro"
+                        type="text"
+                        placeholder="Bairro"
+                        value={formData.bairro}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="cidade">Cidade</Label>
+                      <Input
+                        id="cidade"
+                        name="cidade"
+                        type="text"
+                        placeholder="São Paulo"
+                        value={formData.cidade}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="estado">Estado</Label>
+                      <Input
+                        id="estado"
+                        name="estado"
+                        type="text"
+                        placeholder="SP"
+                        value={formData.estado}
+                        onChange={handleChange}
+                        maxLength={2}
+                      />
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Mínimo 6 caracteres"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmar senha</Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    placeholder="Digite a senha novamente"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
+
+                {/* Seção: Segurança */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Segurança</h3>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Senha *</Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirmar senha *</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="Digite a senha novamente"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
                 
                 <Button 

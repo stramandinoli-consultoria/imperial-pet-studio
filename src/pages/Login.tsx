@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,14 +8,17 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet-async";
+import { ShieldCheck, User } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, isAdmin: userIsAdmin } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isAdmin = searchParams.get("tipo") === "admin";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,15 +33,28 @@ const Login = () => {
     }
 
     setIsSubmitting(true);
-    
+
     const success = await login(email, password);
-    
+
     if (success) {
-      toast({
-        title: "Sucesso!",
-        description: "Login realizado com sucesso.",
-      });
-      navigate("/agendamento");
+      if (isAdmin) {
+        // Verificar se o usuário tem permissão de admin após o login
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (userData.isAdmin) {
+          navigate("/admin");
+        } else {
+          toast({
+            title: "Acesso negado",
+            description: "Você não tem permissão de administrador.",
+            variant: "destructive",
+          });
+          // Faz logout pois não é admin
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("userData");
+        }
+      } else {
+        navigate("/agendamento");
+      }
     } else {
       toast({
         title: "Erro",
@@ -61,10 +77,43 @@ const Login = () => {
         <div className="mx-auto max-w-md">
           <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Entrar na sua conta</CardTitle>
+              <div className="flex justify-center mb-3">
+                {isAdmin ? (
+                  <div className="bg-primary/10 text-primary rounded-full p-3">
+                    <ShieldCheck className="h-7 w-7" />
+                  </div>
+                ) : (
+                  <div className="bg-muted rounded-full p-3">
+                    <User className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <CardTitle className="text-2xl">
+                {isAdmin ? "Acesso Administrativo" : "Entrar na sua conta"}
+              </CardTitle>
               <p className="text-muted-foreground">
-                Entre com seus dados para acessar o agendamento
+                {isAdmin
+                  ? "Entre com suas credenciais de administrador"
+                  : "Entre com seus dados para acessar o agendamento"}
               </p>
+              <div className="flex justify-center gap-2 mt-3">
+                <Button
+                  variant={!isAdmin ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSearchParams({})}
+                >
+                  <User className="h-3.5 w-3.5 mr-1" />
+                  Cliente
+                </Button>
+                <Button
+                  variant={isAdmin ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSearchParams({ tipo: "admin" })}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                  Admin
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,10 +147,11 @@ const Login = () => {
                   variant="hero"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Entrando..." : "Entrar"}
+                  {isSubmitting ? "Entrando..." : isAdmin ? "Entrar como Admin" : "Entrar"}
                 </Button>
               </form>
               
+              {!isAdmin && (
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
                   Ainda não tem uma conta?{" "}
@@ -110,6 +160,7 @@ const Login = () => {
                   </Link>
                 </p>
               </div>
+              )}
             </CardContent>
           </Card>
         </div>

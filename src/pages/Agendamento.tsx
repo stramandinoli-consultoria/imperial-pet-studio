@@ -10,9 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { usePets } from "@/hooks/use-pets";
 import { useServicos, useHorariosDisponiveis } from "@/hooks/use-servicos";
 import { useAgendamentos, useCreateAgendamento, useCancelAgendamento } from "@/hooks/use-agendamentos";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Calendar, Clock, User, Heart, Loader2, X } from "lucide-react";
+import { Calendar, Clock, User, Heart, Loader2, X, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -244,7 +244,15 @@ const Agendamento = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Pet */}
                 <div className="space-y-2">
-                  <Label>Pet *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Pet *</Label>
+                    <Link to="/meus-pets">
+                      <Button type="button" variant="outline" size="sm" className="gap-1">
+                        <Plus className="h-4 w-4" />
+                        Novo Pet
+                      </Button>
+                    </Link>
+                  </div>
                   {loadingPets ? (
                     <div className="flex items-center gap-2 p-3 border rounded">
                       <Loader2 className="h-4 w-4 animate-spin" />
